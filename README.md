@@ -32,7 +32,6 @@ npm install
 3. Crea un archivo `.env` en la raíz del proyecto y agrega tu API key:
 ```env
 OPENWEATHER_API_KEY=tu_api_key_aqui
-PORT=3000
 ```
 
 4. Inicia el servidor de desarrollo:
