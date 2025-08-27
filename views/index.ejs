@@ -1,0 +1,67 @@
+<%- include("partials/header.ejs") %>
+        <main>
+            <!-- Formulario de búsqueda -->
+            <form action="/weather" method="POST" class="search-form">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        name="city" 
+                        placeholder="Ingresa una ciudad..." 
+                        required
+                        class="city-input"
+                    >
+                    <button type="submit" class="search-btn">
+                        🔍 Buscar
+                    </button>
+                </div>
+            </form>
+
+            <!-- Mostrar error si existe -->
+            <% if (error) { %>
+                <div class="error-message">
+                    <p>❌ <%= error %></p>
+                </div>
+            <% } %>
+
+            <!-- Mostrar datos del clima si existen -->
+            <% if (weather) { %>
+                <div class="weather-card">
+                    <div class="weather-header">
+                        <h2><%= weather.city %>, <%= weather.country %></h2>
+                    </div>
+                    
+                    <div class="weather-main">
+                        <div class="temperature">
+                            <img 
+                                src="https://openweathermap.org/img/wn/<%= weather.icon %>@2x.png" 
+                                alt="<%= weather.description %>"
+                                class="weather-icon"
+                            >
+                            <span class="temp-value"><%= weather.temperature %>°C</span>
+                        </div>
+                        <p class="weather-description"><%= weather.description %></p>
+                        <p class="feels-like">Sensación térmica: <%= weather.feelsLike %>°C</p>
+                    </div>
+                    
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <span class="detail-label">💧 Humedad:</span>
+                            <span class="detail-value"><%= weather.humidity %>%</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">💨 Viento:</span>
+                            <span class="detail-value"><%= weather.windSpeed %> m/s</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">📊 Presión:</span>
+                            <span class="detail-value"><%= weather.pressure %> hPa</span>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </main>
+    </div>
+
+    <script src="/js/script.js"></script>
+
+<%- include("partials/footer.ejs") %>
