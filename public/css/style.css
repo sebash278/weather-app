@@ -194,6 +194,24 @@ header p {
     transform: none;
 }
 
+.geo-btn {
+  padding: 1.2rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-light);
+}
+
+.geo-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-heavy);
+}
+
 /* Messages */
 .error-message {
     background: rgba(239, 68, 68, 0.9);

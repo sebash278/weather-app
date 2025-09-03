@@ -270,6 +270,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
+const geoBtn = document.getElementById('geo-btn');
+
+if (geoBtn) {
+    geoBtn.addEventListener('click', () => {
+        if (navigator.geolocation) {
+            geoBtn.textContent = "📍 Obteniendo...";
+            geoBtn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const { latitude, longitude } = pos.coords;
+
+                // Crear form dinámico y enviarlo
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/weather';
+
+                const latInput = document.createElement('input');
+                latInput.type = 'hidden';
+                latInput.name = 'lat';
+                latInput.value = latitude;
+
+                const lonInput = document.createElement('input');
+                lonInput.type = 'hidden';
+                lonInput.name = 'lon';
+                lonInput.value = longitude;
+
+                form.appendChild(latInput);
+                form.appendChild(lonInput);
+                document.body.appendChild(form);
+                form.submit();
+            }, err => {
+                alert("No pudimos obtener tu ubicación: " + err.message);
+                geoBtn.textContent = "📍 Mi ubicación";
+                geoBtn.disabled = false;
+            });
+        } else {
+            alert("Tu navegador no soporta geolocalización.");
+        }
+    });
+}
+
 // Add fadeOut animation for error messages
 const style = document.createElement('style');
 style.textContent = `

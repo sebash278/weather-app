@@ -30,26 +30,36 @@ app.get("/", (req, res) => {
 });
 
 app.post("/weather", async (req, res) => {
-    const { city } = req.body;
+    const { city, country, lat, lon } = req.body;
     const apiKey = process.env.OPENWEATHER_API_KEY;
 
-    console.log('=== DEBUG ===');
-    console.log('Ciudad recibida:', city);
-    console.log('API Key existe:', apiKey ? 'SÍ' : 'NO');
-    console.log('URL que vamos a llamar:', `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=es`);
-    
+    let url;
+    if (lat && lon) {
+        const geoUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
+        const geoRes = await axios.get(geoUrl);
 
-    if(!city){
+        const geoCity = geoRes.data[0]?.name || null;
+        const geoCountry = geoRes.data[0]?.country || null;
+
+        if (geoCity && geoCountry) {
+            url = `https://api.openweathermap.org/data/2.5/weather?q=${geoCity},${geoCountry}&appid=${apiKey}&units=metric&lang=es`;
+        } else {
+            url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
+        }
+    } else if (city && country) {
+        url = `https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${apiKey}&units=metric&lang=es`;
+    } else if (city) {
+        url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=es`;
+    } else {
         return res.render("index", {
             weather: null,
-            error: "Por favor ingresa una ciudad.",
+            error: "Por favor ingresa una ciudad o usa tu ubicación.",
             title: "Weather App"
         });
     }
 
-    try{
-        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=es`);
-
+    try {
+        const response = await axios.get(url);
         const weather = {
             city: response.data.name,
             country: response.data.sys.country,
@@ -62,26 +72,17 @@ app.post("/weather", async (req, res) => {
             feelsLike: Math.round(response.data.main.feels_like)
         };
 
-        res.render("index", {
-            weather: weather,
-            error: null,
-            title: "Weather App"
-        });
-    } catch(error){
+        res.render("index", { weather, error: null, title: "Weather App" });
+    } catch (error) {
         console.log("Error al obtener datos del clima: ", error.message);
-
         let errorMessage = "Error al obtener datos del clima";
-        if (error.response && error.response.status === 404){
+        if (error.response?.status === 404) {
             errorMessage = "Ciudad no encontrada. Verifica el nombre e intenta de nuevo.";
         }
-
-        res.render("index", {
-            weather: null,
-            error: errorMessage,
-            title: "Weather App"
-        });
+        res.render("index", { weather: null, error: errorMessage, title: "Weather App" });
     }
 });
+
 
 app.listen(port, () => {
     console.log(`🌤️ Servidor corriendo en http://localhost:${port}`);
