@@ -275,7 +275,6 @@ const geoBtn = document.getElementById('geo-btn');
 if (geoBtn) {
     geoBtn.addEventListener('click', () => {
         if (navigator.geolocation) {
-            geoBtn.textContent = "📍 Obteniendo...";
             geoBtn.disabled = true;
 
             navigator.geolocation.getCurrentPosition(pos => {
@@ -302,7 +301,6 @@ if (geoBtn) {
                 form.submit();
             }, err => {
                 alert("No pudimos obtener tu ubicación: " + err.message);
-                geoBtn.textContent = "📍 Mi ubicación";
                 geoBtn.disabled = false;
             });
         } else {
@@ -310,6 +308,77 @@ if (geoBtn) {
         }
     });
 }
+(() => {
+  const input = document.querySelector('.city-input');
+  if (!input) return;
+
+  let suggestionsBox = null;
+
+  const removeBox = () => {
+    if (suggestionsBox) { suggestionsBox.remove(); suggestionsBox = null; }
+  };
+
+  const positionBox = () => {
+    if (!suggestionsBox) return;
+    const rect = input.getBoundingClientRect();
+    suggestionsBox.style.position = "fixed";        // importante: fijo al viewport
+    suggestionsBox.style.top = `${rect.bottom + 6}px`;
+    suggestionsBox.style.left = `${rect.left}px`;
+    suggestionsBox.style.width = `${rect.width}px`;
+    suggestionsBox.style.zIndex = "99999";
+  };
+
+  input.addEventListener('input', async function () {
+    const query = this.value.trim();
+    if (query.length < 3) { removeBox(); return; }
+
+    try {
+      const res = await fetch(`/geocode?q=${encodeURIComponent(query)}`);
+      const cities = await res.json();
+
+      removeBox();
+      suggestionsBox = document.createElement("div");
+      suggestionsBox.className = "suggestions-box";
+      document.body.appendChild(suggestionsBox);
+
+      cities.forEach(city => {
+        const item = document.createElement("div");
+        item.className = "suggestion-item";
+        item.textContent = `${city.name}, ${city.country}`;
+        item.addEventListener("click", () => {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/weather';
+
+          const latInput = document.createElement('input');
+          latInput.type = 'hidden'; latInput.name = 'lat'; latInput.value = city.lat;
+          const lonInput = document.createElement('input');
+          lonInput.type = 'hidden'; lonInput.name = 'lon'; lonInput.value = city.lon;
+
+          form.appendChild(latInput);
+          form.appendChild(lonInput);
+          document.body.appendChild(form);
+          form.submit();
+        });
+        suggestionsBox.appendChild(item);
+      });
+
+      positionBox();
+    } catch (err) {
+      console.error("Error obteniendo sugerencias:", err);
+    }
+  });
+
+  // Reposicionar en scroll/resize y cerrar en click afuera / Escape
+  window.addEventListener("scroll", positionBox, { passive: true });
+  window.addEventListener("resize", positionBox);
+  document.addEventListener("click", (e) => {
+    if (!suggestionsBox) return;
+    if (e.target === input || suggestionsBox.contains(e.target)) return;
+    removeBox();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") removeBox(); });
+})();
 
 // Add fadeOut animation for error messages
 const style = document.createElement('style');
