@@ -35,12 +35,10 @@ app.post("/weather", async (req, res) => {
 
     let url;
     if (lat && lon) {
-        // 1. Obtener datos del clima por coordenadas (SIEMPRE confiable)
         url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
         const response = await axios.get(url);
 
-        // 2. Hacer reverse geocoding SOLO para el nombre oficial de ciudad/país
-        const geoUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
+        const geoUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=5&appid=${apiKey}`;
         const geoRes = await axios.get(geoUrl);
 
         const geoCity = geoRes.data[0]?.name || response.data.name;
